@@ -6,31 +6,28 @@ import { z } from "zod";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import FormField from "./FormField";
 import { useRouter } from "next/navigation";
 import { auth } from "@/firebase/client";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { signIn, signUp } from "@/lib/actions/auth..action";
-
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { signIn, signUp } from "@/lib/actions/auth.action";
 
 const authFormSchema = (type: FormType) => {
   return z.object({
-    name: type === 'sign-up' ? z.string().min(3) : z.string().optional(),
+    name: type === "sign-up" ? z.string().min(3) : z.string().optional(),
     email: z.string().email(),
     password: z.string().min(3),
-  })
-}
+  });
+};
 
-
-
-const AuthForm = ({type}: {type: FormType}) => {
-
+const AuthForm = ({ type }: { type: FormType }) => {
   const router = useRouter();
 
   const formSchema = authFormSchema(type);
@@ -49,13 +46,16 @@ const AuthForm = ({type}: {type: FormType}) => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     try {
-      if (type === 'sign-up') {
-
-        const { name, email, password} = values
+      if (type === "sign-up") {
+        const { name, email, password } = values;
 
         // Call your sign up action here
         // For example, you can call an API endpoint to create a user
-        const userCredentials = await createUserWithEmailAndPassword(auth, email, password)
+        const userCredentials = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
         const result = await signUp({
           uid: userCredentials.user.uid,
@@ -64,39 +64,41 @@ const AuthForm = ({type}: {type: FormType}) => {
           password,
         });
 
-        if(!result?.success) {
+        if (!result?.success) {
           toast.error(result?.message);
           return;
         }
-        toast.success('Account created successfully. Please sign in.');
-        router.push('/sign-in')
+        toast.success("Account created successfully. Please sign in.");
+        router.push("/sign-in");
       } else {
-
         const { email, password } = values;
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
 
-        const idToken = await userCredential.user.getIdToken()
+        const idToken = await userCredential.user.getIdToken();
 
-        if(!idToken) {
-          toast.error('Failed to sign into an account.');
+        if (!idToken) {
+          toast.error("Failed to sign into an account.");
         }
 
         await signIn({
-          email, idToken
-        })
+          email,
+          idToken,
+        });
 
         toast.success("Sign in successfully.");
         router.push("/");
-        
       }
     } catch (error) {
       console.log(error);
-      toast.error(`There was an error: ${error}`)
-      
+      toast.error(`There was an error: ${error}`);
     }
   }
 
-  const isSignIn = type === 'sign-in';
+  const isSignIn = type === "sign-in";
 
   return (
     <div className="card-border lg:min-w-[566px]">
@@ -154,4 +156,4 @@ const AuthForm = ({type}: {type: FormType}) => {
   );
 };
 
-export default AuthForm
+export default AuthForm;
